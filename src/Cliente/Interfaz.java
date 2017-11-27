@@ -27,7 +27,7 @@ public class Interfaz extends JFrame{
 	JTextField campoTexto;
 	String inputPlaceholder;
 	
-	//Stilos
+	//Estilos
 	StyledDocument d;
 	SimpleAttributeSet normal;
 	SimpleAttributeSet boldBlue;
