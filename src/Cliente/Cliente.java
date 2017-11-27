@@ -81,7 +81,7 @@ public class Cliente{
                 clientKpairGen.initialize(dhParamFromServerPubKey);
                 KeyPair clientKpair = clientKpairGen.generateKeyPair();
 
-                // Bob creates and initializes his DH KeyAgreement object
+                // Inicializa el objeto de DH KeyAgreement
                 System.out.println("Cliente: Inicializacion ...");
                 clientKeyAgree = KeyAgreement.getInstance("DH");
                 clientKeyAgree.init(clientKpair.getPrivate());
