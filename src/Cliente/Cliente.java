@@ -95,7 +95,7 @@ public class Cliente{
 
                 
                 // Se usa la clave publica del servidor para ejecutar la fase 1 del protocolo DH
-                System.out.println("Client: Executando fase 1 ...");
+                System.out.println("Cliente: Executando fase 1 ...");
                 clientKeyAgree.doPhase(serverPubKey, true);
                 interfaz.agregarMensaje("Iniciando cifrado", "", true);
                 System.out.println("Clave publica del servidor: "+serverPubKey.toString());

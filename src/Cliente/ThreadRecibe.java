@@ -50,7 +50,7 @@ public class ThreadRecibe implements Runnable {
             	//Recibe el mensaje cifrado del servidor
             	mensaje = (byte[]) entrada.readObject(); 
             	
-            	// Inicializa el decrifrado
+            	// Inicializa el descrifrado
             	AlgorithmParameters aesParams = AlgorithmParameters.getInstance("AES");
                 aesParams.init(encodedParams);
                 Cipher serverCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -63,7 +63,7 @@ public class ThreadRecibe implements Runnable {
 				// Muestra el mensaje
                 String serverIP = cliente.getInetAddress().getHostAddress();
                 String nombreServer = cliente.getInetAddress().getHostName();
-                main.agregarMensaje(serverIP+" - "+ nombreServer +" Server:" , reconstitutedString, false);
+                main.agregarMensaje(serverIP+" - "+ nombreServer +" Servidor:" , reconstitutedString, false);
 
             } catch (SocketException ex) {
 				ex.printStackTrace();
@@ -88,7 +88,7 @@ public class ThreadRecibe implements Runnable {
 				e.printStackTrace();
 			}
 
-        } while (!mensaje.equals("TERMINATE")); //Ejecuta hasta que el server escriba TERMINATE
+        } while (!mensaje.equals("TERMINAR")); //Ejecuta hasta que el server escriba TERMINATE
 
         try {
         	// Cerrar los flujos de informacion
