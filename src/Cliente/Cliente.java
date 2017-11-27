@@ -27,113 +27,104 @@ import javax.crypto.spec.DHParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.swing.*;
 
-/**Clase que se encarga de correr los threads de enviar y recibir texto
- * y de crear la interfaz grafica.
- * 
- * 
+/**
+ * Clase que se encargada de iniciar la intefaz y de hacer todo lo necesario para iniciar la comunicacion 
+ * cifrada entre cliente y servidor.
+ * Una vez establecida la conexion, crea los Threads encargados de enviar y recibir mensajes. 
  */
-public class Cliente extends JFrame{
-    public JTextField campoTexto; //Para mostrar mensajes de los usuarios
-    public JTextArea areaTexto; //Para ingresar mensaje a enviar
-    private static ServerSocket servidor; //
-    private static Socket cliente; //Socket para conectarse con el cliente
-    private static String ip = "127.0.0.1"; //ip a la cual se conecta
+public class Cliente{
+    private static Socket socket; 
+    private final static String IP_SERVIDOR = "192.168.0.20"; 
     private static KeyAgreement clientKeyAgree;
     private static SecretKeySpec clientAesKey;
     
-    
-    
-    /**
-     * @param args the command line arguments
-     */
+
     public static void main(String[] args) {
     	Interfaz interfaz = new Interfaz();
         
-        
-        ExecutorService executor = Executors.newCachedThreadPool(); //Para correr los threads
+        // Executor para manejar los Threads
+        ExecutorService executor = Executors.newCachedThreadPool(); 
  
         try {
-        	interfaz.agregarMensaje("Buscando Servidor ...");
-            cliente = new Socket(InetAddress.getByName(ip), 11111); //comunicarme con el servidor
-            interfaz.agregarMensaje("Conectado a :" + cliente.getInetAddress().getHostName());
+        	interfaz.agregarMensaje("Buscando Servidor ...", "", true);
+        	
+        	//Crea el Socket para comunicarse con el servidor
+        	socket = new Socket(InetAddress.getByName(IP_SERVIDOR), 11111); 
+            interfaz.agregarMensaje("Conectado a :" , socket.getInetAddress().getHostName(), true);
             
-          
-            ObjectOutputStream  out = new ObjectOutputStream(cliente.getOutputStream());
-            ObjectInputStream in = new ObjectInputStream(cliente.getInputStream());
+            // Crea los Streams de salida y entrada
+            ObjectOutputStream  out = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
             
             byte[] serverPubKeyEnc = null;
 			try {
+				// Recibe la clave publica del servidor
 				serverPubKeyEnc = (byte[]) in.readObject();
 			} catch (ClassNotFoundException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
     
             try {
             	
+            	// Obtener clave publica del servidor
             	KeyFactory clientKeyFac = KeyFactory.getInstance("DH");
                 X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(serverPubKeyEnc);
-
                 PublicKey serverPubKey = clientKeyFac.generatePublic(x509KeySpec);
 
-                /*
-                 * Bob gets the DH parameters associated with Alice's public key.
-                 * He must use the same parameters when he generates his own key
-                 * pair.
-                 */
+                // Obtener los parametros asociados con la clave publica del servidor
+                // Se deben usar estos parametros para generar el par de claves del cliente
                 DHParameterSpec dhParamFromServerPubKey = ((DHPublicKey)serverPubKey).getParams();
 
-                // Bob creates his own DH key pair
-                System.out.println("Client: Generate DH keypair ...");
+                // Generando por de claves propio
+                System.out.println("Cliente: Generando par de claves DH ...");
                 KeyPairGenerator clientKpairGen = KeyPairGenerator.getInstance("DH");
                 clientKpairGen.initialize(dhParamFromServerPubKey);
                 KeyPair clientKpair = clientKpairGen.generateKeyPair();
 
                 // Bob creates and initializes his DH KeyAgreement object
-                System.out.println("Client: Initialization ...");
+                System.out.println("Cliente: Inicializacion ...");
                 clientKeyAgree = KeyAgreement.getInstance("DH");
                 clientKeyAgree.init(clientKpair.getPrivate());
 
-                // Bob encodes his public key, and sends it over to Alice.
+                // Se obtiene la clave publica y se envia al servidor
                 byte[] clientPubKeyEnc = clientKpair.getPublic().getEncoded();
                 
                 out.writeObject(clientPubKeyEnc);
-                System.out.println("clientPubKeyEnc: "+clientPubKeyEnc);
+                System.out.println("Clave publica del cliente cifrada: "+clientPubKeyEnc);
                 out.flush();
+
                 
-                //AQUI ESTA BIEN 
-                
-                /*
-                 * Bob uses Alice's public key for the first (and only) phase
-                 * of his version of the DH
-                 * protocol.
-                 */
-                System.out.println("Client: Execute PHASE1 ...");
+                // Se usa la clave publica del servidor para ejecutar la fase 1 del protocolo DH
+                System.out.println("Client: Executando fase 1 ...");
                 clientKeyAgree.doPhase(serverPubKey, true);
-                interfaz.agregarMensaje("serverPubKey"+serverPubKey);
+                interfaz.agregarMensaje("Iniciando cifrado", "", true);
+                System.out.println("Clave publica del servidor: "+serverPubKey.toString());
+
                 
+                // Recibe la longitud del secreto del servidor y genera el secreto a partir de eso
                 int serverLen=in.readInt();
                 byte[] clientSharedSecret = new byte[serverLen];
                 clientKeyAgree.generateSecret(clientSharedSecret, 0);
                 
-             
+                // Genera la clave para cifrar y decifrar los mensajes que se envien 
                 clientAesKey = new SecretKeySpec(clientSharedSecret,0,16,"AES");
                 
-                interfaz.agregarMensaje("DH, VERIFICADO, la información viaja encriptada");
+                interfaz.agregarMensaje("DH VERIFICADO, la información ahora viaja encriptada", "", true);
             	
             }catch(Exception e) {
-            	
+            	e.printStackTrace();
             }
-            interfaz.habilitarInput(true); //habilita el texto
+            interfaz.habilitarInput(true); 
             
             //Ejecucion de los Threads
-            executor.execute(new ThreadRecibe(cliente, interfaz,clientAesKey));
-            executor.execute(new ThreadEnvia(cliente, interfaz,clientAesKey)); 
+            executor.execute(new ThreadRecibe(socket, interfaz,clientAesKey));
+            executor.execute(new ThreadEnvia(socket, interfaz,clientAesKey)); 
             
         } catch (IOException ex) {
             Logger.getLogger(Cliente.class.getName()).log(Level.SEVERE, null, ex);
-        } //Fin del catch
+        } 
         finally {
+        	
         }
         executor.shutdown();
     }

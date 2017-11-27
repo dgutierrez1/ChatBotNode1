@@ -27,53 +27,50 @@ public class ThreadEnvia implements Runnable {
         this.main = main;
         this.clientAesKey=clientAesKey;
         
-        //Evento que ocurre al escribir en el campo de texto
+        // Agrega un callback para cuando se quiera enviar un mensajes
         main.campoTexto.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
                 mensaje = event.getActionCommand();
-                enviarDatos(mensaje); //se envia el mensaje
-                main.campoTexto.setText(""); //borra el texto del enterfield
-            } //Fin metodo actionPerformed
-        } 
-        );//Fin llamada a addActionListener
+                enviarDatos(mensaje); 
+                main.campoTexto.setText(""); 
+            } 
+        });
     } 
     
-   //enviar objeto a cliente 
    private void enviarDatos(String mensaje){
       try {
-    	  
+    	  // Se inicializa el cifrado
     	  Cipher cf = Cipher.getInstance("AES/CBC/PKCS5Padding");
           cf.init(Cipher.ENCRYPT_MODE,clientAesKey);
+          
+          // Obtiene los parametros cifrados
           byte[] encodedParams = cf.getParameters().getEncoded();
-
+          
+          //Envia los parametros cifrado al servidor
           salida.writeObject(encodedParams);
+          
+          // Cifra el mensahe
           byte[] theCph = cf.doFinal(mensaje.getBytes());
           
-         salida.writeObject(theCph);
-         salida.flush(); //flush salida a cliente
-         main.agregarMensaje("Cliente>>> " + mensaje);
-      } //Fin try
+          // Envia el mensaje cifrado al servidor
+          salida.writeObject(theCph);
+          salida.flush();
+          main.agregarMensaje(conexion.getInetAddress().getHostName()+" - Tú: ", mensaje, true);
+      } 
       catch (IOException ioException){ 
-         main.agregarMensaje("Error escribiendo Mensaje");
-      } //Fin catch  
- catch (NoSuchAlgorithmException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	} catch (NoSuchPaddingException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	} catch (InvalidKeyException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	} catch (IllegalBlockSizeException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	} catch (BadPaddingException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
-      
-   } //Fin metodo enviarDatos
+         main.agregarMensaje("Error escribiendo Mensaje","", true);
+      } catch (NoSuchAlgorithmException e) {
+    	  e.printStackTrace();
+      } catch (NoSuchPaddingException e) {
+    	  e.printStackTrace();
+      } catch (InvalidKeyException e) {
+    	  e.printStackTrace();
+      } catch (IllegalBlockSizeException e) {
+    	  e.printStackTrace();
+      } catch (BadPaddingException e) {
+    	  e.printStackTrace();
+      }
+   } 
 
    
     public void run() {

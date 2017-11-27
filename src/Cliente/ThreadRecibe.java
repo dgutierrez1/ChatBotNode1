@@ -42,66 +42,64 @@ public class ThreadRecibe implements Runnable {
         } catch (IOException ex) {
             Logger.getLogger(ThreadRecibe.class.getName()).log(Level.SEVERE, null, ex);
         }
-        do { //procesa los mensajes enviados dsd el servidor
-            try {//leer el mensaje y mostrarlo 
+        do { 
+            try {
+            	// Recibe los parametros cifrados del servidor
             	byte[] encodedParams=(byte[]) entrada.readObject();
-            	mensaje = (byte[]) entrada.readObject(); //leer nuevo mensaje
+            	
+            	//Recibe el mensaje cifrado del servidor
+            	mensaje = (byte[]) entrada.readObject(); 
+            	
+            	// Inicializa el decrifrado
             	AlgorithmParameters aesParams = AlgorithmParameters.getInstance("AES");
                 aesParams.init(encodedParams);
                 Cipher serverCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
                 serverCipher.init(Cipher.DECRYPT_MODE, clientAesKey, aesParams);
+                
+                // Decifra el mensaje enviado por el servidor
                 byte[] recovered = serverCipher.doFinal(mensaje);             
 				reconstitutedString = new String(recovered);
                 
-                
-                
-                main.agregarMensaje("Server>>> " +reconstitutedString);
-                
-                
-         
-            } //fin try
-            catch (SocketException ex) {
-            }
-            catch (EOFException eofException) {
-                main.agregarMensaje("Fin de la conexion");
+				// Muestra el mensaje
+                String serverIP = cliente.getInetAddress().getHostAddress();
+                String nombreServer = cliente.getInetAddress().getHostName();
+                main.agregarMensaje(serverIP+" - "+ nombreServer +" Server:" , reconstitutedString, false);
+
+            } catch (SocketException ex) {
+				ex.printStackTrace();
+            }catch (EOFException eofException) {
+                main.agregarMensaje("Fin de la conexion","", true);
                 break;
-            } //fin catch
-            catch (IOException ex) {
+            } catch (IOException ex) {
                 Logger.getLogger(ThreadRecibe.class.getName()).log(Level.SEVERE, null, ex);
             } catch (ClassNotFoundException classNotFoundException) {
-                main.agregarMensaje("Objeto desconocido");
-            } //fin catch               
- catch (NoSuchAlgorithmException e) {
-				// TODO Auto-generated catch block
+                main.agregarMensaje("Objeto desconocido","", true);
+            } catch (NoSuchAlgorithmException e) {
 				e.printStackTrace();
 			} catch (NoSuchPaddingException e) {
-	// TODO Auto-generated catch block
-	e.printStackTrace();
-} catch (InvalidKeyException e) {
-				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InvalidKeyException e) {
 				e.printStackTrace();
 			} catch (InvalidAlgorithmParameterException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IllegalBlockSizeException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (BadPaddingException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
-        } while (!mensaje.equals("Servidor>>> TERMINATE")); //Ejecuta hasta que el server escriba TERMINATE
+        } while (!mensaje.equals("TERMINATE")); //Ejecuta hasta que el server escriba TERMINATE
 
         try {
-            entrada.close(); //cierra input Stream
-            cliente.close(); //cieraa Socket
-        } //Fin try
+        	// Cerrar los flujos de informacion
+            entrada.close(); 
+            cliente.close(); 
+        } 
         catch (IOException ioException) {
             ioException.printStackTrace();
-        } //fin catch
+        } 
 
-        main.agregarMensaje("Fin de la conexion");
+        main.agregarMensaje("Fin de la conexion","", true);
         System.exit(0);
     
         
