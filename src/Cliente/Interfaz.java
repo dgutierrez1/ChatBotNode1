@@ -66,16 +66,16 @@ public class Interfaz extends JFrame{
 		
 		// Panel informacion
 		JLabel labTitulo = new JLabel("Chat cifrado ");
-		labTitulo.setFont(new Font("Sans Serif", Font.PLAIN, 100));
+		labTitulo.setFont(new Font("Sans Serif", Font.PLAIN, 70));
 		labTitulo.setHorizontalAlignment(JLabel.CENTER);
 
 		
 		JLabel labSubtitulo = new JLabel("Daniel Gutierrez - Jhon Tobar \n");
-		labSubtitulo.setFont(new Font("Sans Serif", Font.PLAIN, 50));
+		labSubtitulo.setFont(new Font("Sans Serif", Font.PLAIN, 25));
 		labSubtitulo.setHorizontalAlignment(JLabel.CENTER);
 		
 		JLabel descripcion = new JLabel("Este chat funciona con intercambio de claves Diffie-Hellman y cifrado AES128. Los mensajes viajan a través de Sockets despues de ser cifrados.");
-		descripcion.setFont(new Font("Sans Serif", Font.PLAIN, 20));
+		descripcion.setFont(new Font("Sans Serif", Font.PLAIN, 15));
 		descripcion.setHorizontalAlignment(JLabel.CENTER);
 		
 		panelInformacion.setLayout(new GridLayout(3, 1));
